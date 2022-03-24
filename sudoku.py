@@ -1,30 +1,30 @@
+from collections import defaultdict
+
 L = [line.strip() for line in open("puzzles.txt").readlines()]
 
-
-def poss(loc):
-    """
-    take location and return the set of possible values for that loc
-    """
-    global P
-    x, y = loc
-    return (
-        set(range(1, 10))
-        - set(P[(x, i)] for i in range(9))
-        - set(P[(i, y)] for i in range(9))
-        - set(P[(i, k)] for i in range((x // 3) * 3, (x // 3) * 3 + 3) for k in range((y // 3) * 3, (y // 3) * 3 + 3))
-    )
+# structure to hold the neighbors of a particular cell.
+# This is used for fast lookups into the 9x9 grid
+V = defaultdict(set)
+for row in range(9):
+    for col in range(9):
+        for i in range(9):
+            V[(row, col)].add((row, i))
+            V[(row, col)].add((i, col))
+            for t in range((row // 3) * 3, (row // 3) * 3 + 3):
+                for k in range((col // 3) * 3, (col // 3) * 3 + 3):
+                    V[(row, col)].add((t, k))
 
 
 def solve():
-    global P
+    global P, V
     for loc in P:
         if P[loc] == 0:
-            s = poss(loc)
-            while s:
-                P[loc] = s.pop()
+            for n in {1, 2, 3, 4, 5, 6, 7, 8, 9} - set(P[l] for l in V[loc]):
+                P[loc] = n
                 solve()
                 P[loc] = 0
             return
+    # here is a solution, so print it
     for row in range(9):
         print("\n")
         for col in range(9):
